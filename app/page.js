@@ -12,6 +12,7 @@ export default function Home() {
   const [preferiti, setPreferiti] = useState([])
   const [ricerca, setRicerca] = useState('')
   const [notificheNonLette, setNotificheNonLette] = useState(0)
+  const [messaggiNonLetti, setMessaggiNonLetti] = useState(0)
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -32,6 +33,7 @@ export default function Home() {
   useEffect(() => {
     fetchPreferiti()
     fetchNotificheNonLette()
+    fetchMessaggiNonLetti()
   }, [utente])
 
   async function fetchCategorie() {
@@ -59,12 +61,6 @@ export default function Home() {
     if (data) setPreferiti(data.map(p => p.annuncio_id))
   }
 
-   async function fetchPreferiti() {
-    if (!utente) return
-    const { data } = await supabase.from('preferiti').select('annuncio_id').eq('user_id', utente.id)
-    if (data) setPreferiti(data.map(p => p.annuncio_id))
-  }
-
   async function fetchNotificheNonLette() {
     if (!utente) return
     const { count } = await supabase
@@ -74,6 +70,17 @@ export default function Home() {
       .eq('letta', false)
     setNotificheNonLette(count || 0)
   }
+
+  async function fetchMessaggiNonLetti() {
+    if (!utente) return
+    const { count } = await supabase
+      .from('messaggi')
+      .select('*', { count: 'exact', head: true })
+      .eq('destinatario_id', utente.id)
+      .eq('letto', false)
+    setMessaggiNonLetti(count || 0)
+  }
+
   async function togglePreferito(e, annuncioId, venditoreId) {
     e.stopPropagation()
     if (!utente) { window.location.href = '/login'; return }
@@ -110,26 +117,24 @@ export default function Home() {
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800;900&display=swap');`}</style>
 
       {/* HEADER */}
-      <header style={{
-        background: 'white',
-        boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
-        position: 'sticky', top: 0, zIndex: 50,
-      }}>
+      <header style={{ background: 'white', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', position: 'sticky', top: 0, zIndex: 50 }}>
         <div style={{ maxWidth: 640, margin: '0 auto', padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{
-              width: 38, height: 38, borderRadius: 12,
-              background: 'linear-gradient(145deg, #FF7575, #FF5252)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 20, boxShadow: '0 3px 10px rgba(255,82,82,0.3)',
-            }}>🏠</div>
+            <div style={{ width: 38, height: 38, borderRadius: 12, background: 'linear-gradient(145deg, #FF7575, #FF5252)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, boxShadow: '0 3px 10px rgba(255,82,82,0.3)' }}>🏠</div>
             <div>
               <div style={{ fontSize: 20, fontWeight: 900, color: '#FF6262', lineHeight: 1.1, letterSpacing: -0.5 }}>CivitaBimbi</div>
               <div style={{ fontSize: 10, fontWeight: 700, color: '#AAA', letterSpacing: 1, textTransform: 'uppercase', lineHeight: 1 }}>Civitavecchia</div>
             </div>
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <button onClick={() => window.location.href = '/notifiche'} style={{ width: 38, height: 38, borderRadius: '50%', background: '#FFF5F5', border: 'none', cursor: 'pointer', fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🔔</button>
+            <button onClick={() => window.location.href = '/notifiche'} style={{ width: 38, height: 38, borderRadius: '50%', background: '#FFF5F5', border: 'none', cursor: 'pointer', fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+              🔔
+              {notificheNonLette > 0 && (
+                <div style={{ position: 'absolute', top: 0, right: 0, width: 16, height: 16, background: '#FF6262', borderRadius: '50%', fontSize: 9, fontWeight: 900, color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {notificheNonLette}
+                </div>
+              )}
+            </button>
             <button onClick={() => window.location.href = '/preferiti'} style={{ width: 38, height: 38, borderRadius: '50%', background: '#FFF5F5', border: 'none', cursor: 'pointer', fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>❤️</button>
             {utente ? (
               <button onClick={handleLogout} style={{ fontSize: 12, fontWeight: 800, color: '#AAA', background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'Baloo 2', sans-serif" }}>Esci</button>
@@ -143,60 +148,27 @@ export default function Home() {
       <div style={{ maxWidth: 640, margin: '0 auto', padding: '0 16px' }}>
 
         {/* HERO */}
-        <div style={{
-          background: 'linear-gradient(135deg, #FF7575 0%, #FF8A50 100%)',
-          borderRadius: 24, padding: '20px',
-          marginTop: 16, position: 'relative', overflow: 'hidden',
-        }}>
+        <div style={{ background: 'linear-gradient(135deg, #FF7575 0%, #FF8A50 100%)', borderRadius: 24, padding: '20px', marginTop: 16, position: 'relative', overflow: 'hidden' }}>
           <div style={{ position: 'relative', zIndex: 2 }}>
-            <div style={{ fontSize: 11, fontWeight: 800, color: 'rgba(255,255,255,0.75)', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 4 }}>
-              📍 Civitavecchia & dintorni
-            </div>
-            <div style={{ fontSize: 22, fontWeight: 900, color: 'white', lineHeight: 1.2, marginBottom: 4 }}>
-              {utente ? 'Bentornato! 👋' : 'Scambia, vendi e regala'}
-            </div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.9)', marginBottom: 16 }}>
-              Il mercatino dei bambini di Civitavecchia
-            </div>
+            <div style={{ fontSize: 11, fontWeight: 800, color: 'rgba(255,255,255,0.75)', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 4 }}>📍 Civitavecchia & dintorni</div>
+            <div style={{ fontSize: 22, fontWeight: 900, color: 'white', lineHeight: 1.2, marginBottom: 4 }}>{utente ? 'Bentornato! 👋' : 'Scambia, vendi e regala'}</div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.9)', marginBottom: 16 }}>Il mercatino dei bambini di Civitavecchia</div>
             {!utente && (
-              <button
-                onClick={() => window.location.href = '/login'}
-                style={{
-                  background: 'white', color: '#FF6262',
-                  border: 'none', borderRadius: 50,
-                  padding: '8px 20px', fontSize: 13, fontWeight: 800,
-                  cursor: 'pointer', fontFamily: "'Baloo 2', sans-serif",
-                  boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
-                }}
-              >Inizia gratis →</button>
+              <button onClick={() => window.location.href = '/login'} style={{ background: 'white', color: '#FF6262', border: 'none', borderRadius: 50, padding: '8px 20px', fontSize: 13, fontWeight: 800, cursor: 'pointer', fontFamily: "'Baloo 2', sans-serif", boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}>Inizia gratis →</button>
             )}
           </div>
-          <div style={{
-            position: 'absolute', right: -5, top: '50%',
-            transform: 'translateY(-50%)',
-            fontSize: 80, opacity: 0.4, lineHeight: 1,
-            filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.15))',
-          }}>🧸</div>
+          <div style={{ position: 'absolute', right: -5, top: '50%', transform: 'translateY(-50%)', fontSize: 80, opacity: 0.4, lineHeight: 1, filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.15))' }}>🧸</div>
         </div>
 
         {/* SEARCH */}
-        <div style={{
-          background: 'white', borderRadius: 16,
-          padding: '12px 16px', marginTop: 12,
-          display: 'flex', alignItems: 'center', gap: 10,
-          boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
-        }}>
+        <div style={{ background: 'white', borderRadius: 16, padding: '12px 16px', marginTop: 12, display: 'flex', alignItems: 'center', gap: 10, boxShadow: '0 2px 12px rgba(0,0,0,0.05)' }}>
           <span style={{ fontSize: 18, color: '#CCC' }}>🔍</span>
           <input
             type="text"
             placeholder="Cerca vestiti, giochi, libri..."
             value={ricerca}
             onChange={e => setRicerca(e.target.value)}
-            style={{
-              flex: 1, border: 'none', outline: 'none',
-              fontSize: 14, fontWeight: 600, color: '#2D2D2D',
-              background: 'transparent', fontFamily: "'Baloo 2', sans-serif",
-            }}
+            style={{ flex: 1, border: 'none', outline: 'none', fontSize: 14, fontWeight: 600, color: '#2D2D2D', background: 'transparent', fontFamily: "'Baloo 2', sans-serif" }}
           />
         </div>
 
@@ -204,37 +176,14 @@ export default function Home() {
         <div style={{ marginTop: 20 }}>
           <div style={{ fontSize: 15, fontWeight: 900, color: '#2D2D2D', marginBottom: 12 }}>Categorie</div>
           <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 8 }}>
-            <button
-              onClick={() => setCategoriaSelezionata(null)}
-              style={{
-                flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
-                padding: '12px 16px', borderRadius: 18,
-                border: `2px solid ${!categoriaSelezionata ? '#FF6262' : 'transparent'}`,
-                background: !categoriaSelezionata ? '#FFF0F0' : 'white',
-                cursor: 'pointer', fontFamily: "'Baloo 2', sans-serif",
-                boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-              }}
-            >
+            <button onClick={() => setCategoriaSelezionata(null)} style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, padding: '12px 16px', borderRadius: 18, border: `2px solid ${!categoriaSelezionata ? '#FF6262' : 'transparent'}`, background: !categoriaSelezionata ? '#FFF0F0' : 'white', cursor: 'pointer', fontFamily: "'Baloo 2', sans-serif", boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
               <span style={{ fontSize: 24 }}>🏠</span>
               <span style={{ fontSize: 11, fontWeight: 800, color: '#2D2D2D' }}>Tutti</span>
             </button>
             {categorie.map(cat => (
-              <button
-                key={cat.id}
-                onClick={() => setCategoriaSelezionata(cat.id)}
-                style={{
-                  flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
-                  padding: '12px 16px', borderRadius: 18,
-                  border: `2px solid ${categoriaSelezionata === cat.id ? '#FF6262' : 'transparent'}`,
-                  background: categoriaSelezionata === cat.id ? '#FFF0F0' : 'white',
-                  cursor: 'pointer', fontFamily: "'Baloo 2', sans-serif",
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-                }}
-              >
+              <button key={cat.id} onClick={() => setCategoriaSelezionata(cat.id)} style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, padding: '12px 16px', borderRadius: 18, border: `2px solid ${categoriaSelezionata === cat.id ? '#FF6262' : 'transparent'}`, background: categoriaSelezionata === cat.id ? '#FFF0F0' : 'white', cursor: 'pointer', fontFamily: "'Baloo 2', sans-serif", boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
                 <span style={{ fontSize: 24 }}>{getEmoji(cat)}</span>
-                <span style={{ fontSize: 11, fontWeight: 800, color: '#2D2D2D', whiteSpace: 'nowrap' }}>
-                  {cat.nome.split(' ')[0]}
-                </span>
+                <span style={{ fontSize: 11, fontWeight: 800, color: '#2D2D2D', whiteSpace: 'nowrap' }}>{cat.nome.split(' ')[0]}</span>
               </button>
             ))}
           </div>
@@ -264,76 +213,29 @@ export default function Home() {
               <div style={{ fontSize: 15, fontWeight: 800, color: '#AAA', marginBottom: 6 }}>Nessun annuncio trovato</div>
               <div style={{ fontSize: 13, fontWeight: 600, color: '#CCC', marginBottom: 20 }}>Sii il primo a pubblicare!</div>
               {!utente && (
-                <button
-                  onClick={() => window.location.href = '/login'}
-                  style={{
-                    background: 'linear-gradient(135deg, #FF7575, #FF5252)',
-                    color: 'white', border: 'none', borderRadius: 50,
-                    padding: '10px 24px', fontSize: 13, fontWeight: 800,
-                    cursor: 'pointer', fontFamily: "'Baloo 2', sans-serif",
-                  }}
-                >Accedi per pubblicare</button>
+                <button onClick={() => window.location.href = '/login'} style={{ background: 'linear-gradient(135deg, #FF7575, #FF5252)', color: 'white', border: 'none', borderRadius: 50, padding: '10px 24px', fontSize: 13, fontWeight: 800, cursor: 'pointer', fontFamily: "'Baloo 2', sans-serif" }}>Accedi per pubblicare</button>
               )}
             </div>
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 160px))', gap: 8, padding: '0 8px' }}>
               {annunci.filter(a => a.titolo.toLowerCase().includes(ricerca.toLowerCase())).map(annuncio => (
-                <div
-                  key={annuncio.id}
-                  onClick={() => window.location.href = `/annuncio/${annuncio.id}`}
-                  style={{
-                    background: 'white', borderRadius: 20, overflow: 'hidden',
-                    boxShadow: '0 2px 12px rgba(0,0,0,0.05)', cursor: 'pointer',
-                  }}
-                >
-                  {/* FOTO */}
-                  <div style={{
-                    height: 150,
-                    background: '#F5F5F5',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    position: 'relative', overflow: 'hidden', padding: 0,
-                  }}>
-                    {/* CUORE PREFERITI */}
-                    <button
-                      onClick={(e) => togglePreferito(e, annuncio.id, annuncio.user_id)}
-                      style={{
-                        position: 'absolute', top: 8, right: 8, zIndex: 10,
-                        background: 'white', border: 'none', borderRadius: '50%',
-                        width: 32, height: 32, cursor: 'pointer', fontSize: 16,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                      }}
-                    >
+                <div key={annuncio.id} onClick={() => window.location.href = `/annuncio/${annuncio.id}`} style={{ background: 'white', borderRadius: 20, overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.05)', cursor: 'pointer' }}>
+                  <div style={{ height: 150, background: '#F5F5F5', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}>
+                    <button onClick={(e) => togglePreferito(e, annuncio.id, annuncio.user_id)} style={{ position: 'absolute', top: 8, right: 8, zIndex: 10, background: 'white', border: 'none', borderRadius: '50%', width: 32, height: 32, cursor: 'pointer', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
                       {preferiti.includes(annuncio.id) ? '❤️' : '🤍'}
                     </button>
-
                     {annuncio.foto_principale ? (
-                      <img
-                        src={annuncio.foto_principale}
-                        alt={annuncio.titolo}
-                        style={{ width: '100%', height: '100%', objectFit: 'contain', padding: 0 }}
-                      />
+                      <img src={annuncio.foto_principale} alt={annuncio.titolo} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                     ) : (
                       <span style={{ fontSize: 44, opacity: 0.5 }}>{annuncio.categoria_emoji || '📦'}</span>
                     )}
-
                     {(annuncio.is_gratuito || annuncio.prezzo === 0) && (
-                      <div style={{
-                        position: 'absolute', top: 8, left: 8,
-                        background: '#4ECDC4', color: 'white',
-                        fontSize: 10, fontWeight: 900,
-                        padding: '2px 8px', borderRadius: 20,
-                      }}>GRATIS</div>
+                      <div style={{ position: 'absolute', top: 8, left: 8, background: '#4ECDC4', color: 'white', fontSize: 10, fontWeight: 900, padding: '2px 8px', borderRadius: 20 }}>GRATIS</div>
                     )}
                   </div>
-                  {/* INFO */}
                   <div style={{ padding: '10px 12px 12px' }}>
-                    <div style={{ fontSize: 12, fontWeight: 800, color: '#2D2D2D', lineHeight: 1.3, marginBottom: 4, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
-                      {annuncio.titolo}
-                    </div>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: '#BBB', marginBottom: 6, height: 32, overflow: 'hidden' }}>
-                      📍 {annuncio.zona || 'Civitavecchia'}
-                    </div>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: '#2D2D2D', lineHeight: 1.3, marginBottom: 4, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{annuncio.titolo}</div>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: '#BBB', marginBottom: 6, height: 32, overflow: 'hidden' }}>📍 {annuncio.zona || 'Civitavecchia'}</div>
                     <div style={{ fontSize: 16, fontWeight: 900, color: annuncio.is_gratuito || annuncio.prezzo === 0 ? '#4ECDC4' : '#FF6262' }}>
                       {annuncio.is_gratuito || annuncio.prezzo === 0 ? 'Gratis' : `${annuncio.prezzo} €`}
                     </div>
@@ -346,45 +248,29 @@ export default function Home() {
       </div>
 
       {/* BOTTOM NAV */}
-      <nav style={{
-        position: 'fixed', bottom: 0, left: 0, right: 0,
-        background: 'white', borderTop: '1px solid #F5F0EC',
-        zIndex: 50, boxShadow: '0 -4px 20px rgba(0,0,0,0.06)',
-      }}>
+      <nav style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'white', borderTop: '1px solid #F5F0EC', zIndex: 50, boxShadow: '0 -4px 20px rgba(0,0,0,0.06)' }}>
         <div style={{ maxWidth: 640, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-around', padding: '8px 16px' }}>
           {[{ icon: '🏠', label: 'Home', href: '/', active: true }, { icon: '🔍', label: 'Esplora', href: '/esplora', active: false }].map(item => (
-            <button key={item.label} onClick={() => window.location.href = item.href} style={{
-              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
-              padding: '4px 12px', background: 'none', border: 'none', cursor: 'pointer',
-              fontFamily: "'Baloo 2', sans-serif",
-            }}>
+            <button key={item.label} onClick={() => window.location.href = item.href} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, padding: '4px 12px', background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'Baloo 2', sans-serif" }}>
               <span style={{ fontSize: 22 }}>{item.icon}</span>
               <span style={{ fontSize: 11, fontWeight: 800, color: item.active ? '#FF6262' : '#BBB' }}>{item.label}</span>
             </button>
           ))}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 10 }}>
-            <button
-              onClick={() => utente ? window.location.href = '/pubblica' : window.location.href = '/login'}
-              style={{
-                width: 48, height: 48, borderRadius: '50%',
-                background: 'linear-gradient(145deg, #FF7575, #FF5252)',
-                border: 'none', cursor: 'pointer', fontSize: 24, color: 'white',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                boxShadow: '0 6px 20px rgba(255,82,82,0.4)',
-              }}
-            >+</button>
+            <button onClick={() => utente ? window.location.href = '/pubblica' : window.location.href = '/login'} style={{ width: 48, height: 48, borderRadius: '50%', background: 'linear-gradient(145deg, #FF7575, #FF5252)', border: 'none', cursor: 'pointer', fontSize: 24, color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 6px 20px rgba(255,82,82,0.4)' }}>+</button>
             <span style={{ fontSize: 10, fontWeight: 800, color: '#FF6262', marginTop: 2 }}>Vendi</span>
           </div>
-          {[{ icon: '💬', label: 'Messaggi', href: '/messaggi' }, { icon: '👤', label: 'Profilo', href: utente ? '/profilo' : '/login' }].map(item => (
-            <button key={item.label} onClick={() => window.location.href = item.href} style={{
-              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
-              padding: '4px 12px', background: 'none', border: 'none', cursor: 'pointer',
-              fontFamily: "'Baloo 2', sans-serif",
-            }}>
-              <span style={{ fontSize: 22 }}>{item.icon}</span>
-              <span style={{ fontSize: 11, fontWeight: 800, color: '#BBB' }}>{item.label}</span>
-            </button>
-          ))}
+          <button onClick={() => window.location.href = '/messaggi'} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, padding: '4px 12px', background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'Baloo 2', sans-serif", position: 'relative' }}>
+            <span style={{ fontSize: 22 }}>💬</span>
+            {messaggiNonLetti > 0 && (
+              <div style={{ position: 'absolute', top: 0, right: 8, width: 16, height: 16, background: '#FF6262', borderRadius: '50%', fontSize: 9, fontWeight: 900, color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{messaggiNonLetti}</div>
+            )}
+            <span style={{ fontSize: 11, fontWeight: 800, color: '#BBB' }}>Messaggi</span>
+          </button>
+          <button onClick={() => window.location.href = utente ? '/profilo' : '/login'} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, padding: '4px 12px', background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'Baloo 2', sans-serif" }}>
+            <span style={{ fontSize: 22 }}>👤</span>
+            <span style={{ fontSize: 11, fontWeight: 800, color: '#BBB' }}>Profilo</span>
+          </button>
         </div>
       </nav>
 

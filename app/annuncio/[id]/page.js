@@ -261,11 +261,15 @@ export default function AnnuncioPage({ params: paramsPromise }) {
             </div>
           ) : (
             <button
-              onClick={apriWhatsApp}
-              className="w-full bg-green-500 hover:bg-green-600 text-white font-black py-4 rounded-2xl text-base shadow-md transition-all flex items-center justify-center gap-2"
+              onClick={() => {
+                if (!utente) { window.location.href = '/login'; return }
+                const convId = [utente.id, annuncio.user_id].sort().join('_') + '_' + annuncio.id
+                window.location.href = `/chat/${convId}?annuncio=${annuncio.id}&altro=${annuncio.user_id}`
+              }}
+              className="w-full bg-red-400 hover:bg-red-500 text-white font-black py-4 rounded-2xl text-base shadow-md transition-all"
             >
               <span className="text-xl">💬</span>
-              Contatta su WhatsApp
+              Contatta il venditore
             </button>
           )}
         </div>

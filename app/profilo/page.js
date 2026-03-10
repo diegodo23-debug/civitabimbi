@@ -18,7 +18,15 @@ export default function ProfiloPage() {
     bio: '',
   })
 
-  const ZONE = ['Centro', 'Porto', 'Aurelia', 'Civitavecchia Nord', 'Civitavecchia Sud', 'Ladispoli', 'Santa Marinella', 'Cerveteri', 'Tarquinia']
+  const ZONE = [
+  'Centro Storico - Pirgo - Odescalchi',
+  'Cisterna Faro - San Liborio',
+  "Campo dell'Oro - San Gordiano",
+  'Matteotti - Uliveto - Buonarroti',
+  'San Pio - Cappuccini',
+  'Borgata Aurelia - Pantano',
+  'Boccelle',
+]
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
