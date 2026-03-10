@@ -195,15 +195,12 @@ export default function AnnuncioPage({ params: paramsPromise }) {
                 Taglia {annuncio.taglia}
               </span>
             )}
-            {(annuncio.eta_min || annuncio.eta_max) && (
-              <span className="bg-purple-100 text-purple-600 text-xs font-bold px-3 py-1 rounded-full">
-                {annuncio.eta_min && annuncio.eta_max
-                  ? `${annuncio.eta_min}-${annuncio.eta_max} anni`
-                  : annuncio.eta_min
-                  ? `Da ${annuncio.eta_min} anni`
-                  : `Fino a ${annuncio.eta_max} anni`}
-              </span>
-            )}
+            {annuncio.eta_min !== null && (
+                <span className="bg-purple-100 text-purple-600 text-xs font-bold px-3 py-1 rounded-full">
+                  {annuncio.eta_min === 0 ? 'Neonato' : `${annuncio.eta_min} ${annuncio.eta_min === 1 ? 'anno' : 'anni'}`}
+                </span>
+              )}
+            
             <span className="bg-gray-100 text-gray-500 text-xs font-bold px-3 py-1 rounded-full">
               📍 {annuncio.zona || 'Civitavecchia'}
             </span>
