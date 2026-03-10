@@ -71,10 +71,29 @@ export default function PubblicaPage() {
     setErrori(prev => ({ ...prev, [campo]: null }))
   }
 
-  function gestisciFoto(e) {
+  async function cropQuadrato(file) {
+    return new Promise((resolve) => {
+      const img = new Image()
+      img.onload = () => {
+        const size = Math.min(img.width, img.height)
+        const canvas = document.createElement('canvas')
+        canvas.width = 400
+        canvas.height = 400
+        const ctx = canvas.getContext('2d')
+        const offsetX = (img.width - size) / 2
+        const offsetY = (img.height - size) / 2
+        ctx.drawImage(img, offsetX, offsetY, size, size, 0, 0, 400, 400)
+        canvas.toBlob(blob => resolve(new File([blob], file.name, { type: 'image/jpeg' })), 'image/jpeg', 0.85)
+      }
+      img.src = URL.createObjectURL(file)
+    })
+  }
+
+  async function gestisciFoto(e) {
     const files = Array.from(e.target.files).slice(0, 5)
-    setFoto(files)
-    setAnteprima(files.map(f => URL.createObjectURL(f)))
+    const croppate = await Promise.all(files.map(cropQuadrato))
+    setFoto(croppate)
+    setAnteprima(croppate.map(f => URL.createObjectURL(f)))
   }
 
   async function caricaFoto(annuncioId) {

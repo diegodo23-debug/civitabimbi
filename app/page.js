@@ -215,7 +215,7 @@ export default function Home() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               {[...Array(4)].map((_, i) => (
                 <div key={i} style={{ background: 'white', borderRadius: 20, overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.05)' }}>
-                  <div style={{ height: 160, background: '#F5F0EC' }} />
+                  <div style={{ height: 140, background: '#F5F0EC' }} />
                   <div style={{ padding: 12 }}>
                     <div style={{ height: 12, background: '#F0EBE6', borderRadius: 6, marginBottom: 8 }} />
                     <div style={{ height: 12, background: '#F0EBE6', borderRadius: 6, width: '60%' }} />
@@ -241,7 +241,7 @@ export default function Home() {
               )}
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 160px))', gap: 8, padding: '0 8px' }}>
               {annunci.filter(a => a.titolo.toLowerCase().includes(ricerca.toLowerCase())).map(annuncio => (
                 <div
                   key={annuncio.id}
@@ -253,10 +253,10 @@ export default function Home() {
                 >
                   {/* FOTO */}
                   <div style={{
-                    height: 160,
-                    background: 'linear-gradient(135deg, #FFF0EE, #FFE8E8)',
+                    height: 150,
+                    background: 'white',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    position: 'relative', overflow: 'hidden',
+                    position: 'relative', overflow: 'hidden', padding: 0,
                   }}>
                     {annuncio.foto_principale ? (
                       <img
@@ -265,21 +265,14 @@ export default function Home() {
                         style={{
                           width: '100%', height: '100%',
                           objectFit: 'contain',
-                          objectPosition: 'center',
-                          padding: 8,
+                          padding: 0,
+                         
                         }}
                       />
                     ) : (
                       <span style={{ fontSize: 44, opacity: 0.5 }}>{annuncio.categoria_emoji || '📦'}</span>
                     )}
-                    {annuncio.taglia && (
-                      <div style={{
-                        position: 'absolute', top: 8, right: 8,
-                        background: '#FFD93D', color: '#2D2D2D',
-                        fontSize: 10, fontWeight: 900,
-                        padding: '2px 8px', borderRadius: 20,
-                      }}>{annuncio.taglia}</div>
-                    )}
+                   
                     {(annuncio.is_gratuito || annuncio.prezzo === 0) && (
                       <div style={{
                         position: 'absolute', top: 8, left: 8,
@@ -294,7 +287,7 @@ export default function Home() {
                     <div style={{ fontSize: 12, fontWeight: 800, color: '#2D2D2D', lineHeight: 1.3, marginBottom: 4, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
                       {annuncio.titolo}
                     </div>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: '#BBB', marginBottom: 6 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: '#BBB', marginBottom: 6, height: 32, overflow: 'hidden' }}>
                       📍 {annuncio.zona || 'Civitavecchia'}
                     </div>
                     <div style={{ fontSize: 16, fontWeight: 900, color: annuncio.is_gratuito || annuncio.prezzo === 0 ? '#4ECDC4' : '#FF6262' }}>
@@ -325,7 +318,7 @@ export default function Home() {
               <span style={{ fontSize: 11, fontWeight: 800, color: item.active ? '#FF6262' : '#BBB' }}>{item.label}</span>
             </button>
           ))}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 20 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 10 }}>
   <button
     onClick={() => utente ? window.location.href = '/pubblica' : window.location.href = '/login'}
     style={{
