@@ -315,7 +315,7 @@ export default function Home() {
         zIndex: 50, boxShadow: '0 -4px 20px rgba(0,0,0,0.06)',
       }}>
         <div style={{ maxWidth: 640, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-around', padding: '8px 16px' }}>
-          {[{ icon: '🏠', label: 'Home', href: '/', active: true }, { icon: '🔍', label: 'Esplora', href: '/', active: false }].map(item => (
+          {[{ icon: '🏠', label: 'Home', href: '/', active: true }, { icon: '🔍', label: 'Esplora', href: '/esplora', active: false }].map(item => (
             <button key={item.label} onClick={() => window.location.href = item.href} style={{
               display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
               padding: '4px 12px', background: 'none', border: 'none', cursor: 'pointer',
@@ -325,16 +325,19 @@ export default function Home() {
               <span style={{ fontSize: 11, fontWeight: 800, color: item.active ? '#FF6262' : '#BBB' }}>{item.label}</span>
             </button>
           ))}
-          <button
-            onClick={() => utente ? window.location.href = '/pubblica' : window.location.href = '/login'}
-            style={{
-              width: 52, height: 52, borderRadius: '50%',
-              background: 'linear-gradient(145deg, #FF7575, #FF5252)',
-              border: 'none', cursor: 'pointer', fontSize: 26, color: 'white',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              marginTop: -20, boxShadow: '0 6px 20px rgba(255,82,82,0.4)',
-            }}
-          >+</button>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 20 }}>
+  <button
+    onClick={() => utente ? window.location.href = '/pubblica' : window.location.href = '/login'}
+    style={{
+      width: 48, height: 48, borderRadius: '50%',
+      background: 'linear-gradient(145deg, #FF7575, #FF5252)',
+      border: 'none', cursor: 'pointer', fontSize: 24, color: 'white',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      boxShadow: '0 6px 20px rgba(255,82,82,0.4)',
+    }}
+  >+</button>
+  <span style={{ fontSize: 10, fontWeight: 800, color: '#FF6262', marginTop: 2 }}>Vendi</span>
+</div>
           {[{ icon: '💬', label: 'Messaggi', href: '/messaggi' }, { icon: '👤', label: 'Profilo', href: utente ? '/profilo' : '/login' }].map(item => (
             <button key={item.label} onClick={() => window.location.href = item.href} style={{
               display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
