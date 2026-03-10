@@ -137,12 +137,12 @@ export default function AnnuncioPage({ params: paramsPromise }) {
 
         {/* FOTO */}
         <div className="bg-gray-100 relative">
-          <div className="h-72 flex items-center justify-center overflow-hidden">
+          <div className="flex items-center justify-center overflow-hidden" style={{height: 280, background: '#F5F5F5'}}>
             {foto.length > 0 ? (
               <img
                 src={foto[fotoAttiva]?.url}
                 alt={annuncio.titolo}
-                className="w-full h-full object-cover"
+                className="object-contain" style={{maxHeight: 280, maxWidth: '100%'}}
               />
             ) : (
               <span className="text-8xl opacity-30">{annuncio.categoria_emoji || '📦'}</span>

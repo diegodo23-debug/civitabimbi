@@ -9,7 +9,9 @@ export default function Home() {
   const [categoriaSelezionata, setCategoriaSelezionata] = useState(null)
   const [categorie, setCategorie] = useState([])
   const [utente, setUtente] = useState(null)
+  const [preferiti, setPreferiti] = useState([])
   const [ricerca, setRicerca] = useState('')
+  const [notificheNonLette, setNotificheNonLette] = useState(0)
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -26,6 +28,11 @@ export default function Home() {
   useEffect(() => {
     fetchAnnunci()
   }, [categoriaSelezionata])
+
+  useEffect(() => {
+    fetchPreferiti()
+    fetchNotificheNonLette()
+  }, [utente])
 
   async function fetchCategorie() {
     const { data } = await supabase.from('categorie').select('*').order('ordine')
@@ -46,13 +53,53 @@ export default function Home() {
     setLoading(false)
   }
 
+  async function fetchPreferiti() {
+    if (!utente) return
+    const { data } = await supabase.from('preferiti').select('annuncio_id').eq('user_id', utente.id)
+    if (data) setPreferiti(data.map(p => p.annuncio_id))
+  }
+
+   async function fetchPreferiti() {
+    if (!utente) return
+    const { data } = await supabase.from('preferiti').select('annuncio_id').eq('user_id', utente.id)
+    if (data) setPreferiti(data.map(p => p.annuncio_id))
+  }
+
+  async function fetchNotificheNonLette() {
+    if (!utente) return
+    const { count } = await supabase
+      .from('notifiche')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', utente.id)
+      .eq('letta', false)
+    setNotificheNonLette(count || 0)
+  }
+  async function togglePreferito(e, annuncioId, venditoreId) {
+    e.stopPropagation()
+    if (!utente) { window.location.href = '/login'; return }
+    const iaPref = preferiti.includes(annuncioId)
+    if (iaPref) {
+      await supabase.from('preferiti').delete().eq('user_id', utente.id).eq('annuncio_id', annuncioId)
+      setPreferiti(prev => prev.filter(id => id !== annuncioId))
+    } else {
+      await supabase.from('preferiti').insert({ user_id: utente.id, annuncio_id: annuncioId })
+      setPreferiti(prev => [...prev, annuncioId])
+      if (venditoreId && venditoreId !== utente.id) {
+        await supabase.from('notifiche').insert({
+          user_id: venditoreId,
+          tipo: 'preferito',
+          messaggio: 'Qualcuno ha aggiunto il tuo annuncio ai preferiti! ❤️',
+          annuncio_id: annuncioId,
+        })
+      }
+    }
+  }
+
   async function handleLogout() {
     await supabase.auth.signOut()
     setUtente(null)
   }
 
-  // Emoji override per passeggini
-  
   function getEmoji(cat) {
     return cat.emoji
   }
@@ -82,23 +129,12 @@ export default function Home() {
             </div>
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <button style={{
-              width: 38, height: 38, borderRadius: '50%',
-              background: '#FFF5F5', border: 'none', cursor: 'pointer',
-              fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>🔔</button>
+            <button onClick={() => window.location.href = '/notifiche'} style={{ width: 38, height: 38, borderRadius: '50%', background: '#FFF5F5', border: 'none', cursor: 'pointer', fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🔔</button>
+            <button onClick={() => window.location.href = '/preferiti'} style={{ width: 38, height: 38, borderRadius: '50%', background: '#FFF5F5', border: 'none', cursor: 'pointer', fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>❤️</button>
             {utente ? (
-              <button onClick={handleLogout} style={{
-                fontSize: 12, fontWeight: 800, color: '#AAA',
-                background: 'none', border: 'none', cursor: 'pointer',
-                fontFamily: "'Baloo 2', sans-serif",
-              }}>Esci</button>
+              <button onClick={handleLogout} style={{ fontSize: 12, fontWeight: 800, color: '#AAA', background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'Baloo 2', sans-serif" }}>Esci</button>
             ) : (
-              <button onClick={() => window.location.href = '/login'} style={{
-                width: 38, height: 38, borderRadius: '50%',
-                background: '#FFF5F5', border: 'none', cursor: 'pointer',
-                fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>👤</button>
+              <button onClick={() => window.location.href = '/login'} style={{ width: 38, height: 38, borderRadius: '50%', background: '#FFF5F5', border: 'none', cursor: 'pointer', fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>👤</button>
             )}
           </div>
         </div>
@@ -135,7 +171,6 @@ export default function Home() {
               >Inizia gratis →</button>
             )}
           </div>
-          {/* Orsacchiotto più visibile */}
           <div style={{
             position: 'absolute', right: -5, top: '50%',
             transform: 'translateY(-50%)',
@@ -153,16 +188,16 @@ export default function Home() {
         }}>
           <span style={{ fontSize: 18, color: '#CCC' }}>🔍</span>
           <input
-  type="text"
-  placeholder="Cerca vestiti, giochi, libri..."
-  value={ricerca}
-  onChange={e => setRicerca(e.target.value)}
-  style={{
-    flex: 1, border: 'none', outline: 'none',
-    fontSize: 14, fontWeight: 600, color: '#2D2D2D',
-    background: 'transparent', fontFamily: "'Baloo 2', sans-serif",
-  }}
-/>
+            type="text"
+            placeholder="Cerca vestiti, giochi, libri..."
+            value={ricerca}
+            onChange={e => setRicerca(e.target.value)}
+            style={{
+              flex: 1, border: 'none', outline: 'none',
+              fontSize: 14, fontWeight: 600, color: '#2D2D2D',
+              background: 'transparent', fontFamily: "'Baloo 2', sans-serif",
+            }}
+          />
         </div>
 
         {/* CATEGORIE */}
@@ -254,25 +289,34 @@ export default function Home() {
                   {/* FOTO */}
                   <div style={{
                     height: 150,
-                    background: 'white',
+                    background: '#F5F5F5',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     position: 'relative', overflow: 'hidden', padding: 0,
                   }}>
+                    {/* CUORE PREFERITI */}
+                    <button
+                      onClick={(e) => togglePreferito(e, annuncio.id, annuncio.user_id)}
+                      style={{
+                        position: 'absolute', top: 8, right: 8, zIndex: 10,
+                        background: 'white', border: 'none', borderRadius: '50%',
+                        width: 32, height: 32, cursor: 'pointer', fontSize: 16,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                      }}
+                    >
+                      {preferiti.includes(annuncio.id) ? '❤️' : '🤍'}
+                    </button>
+
                     {annuncio.foto_principale ? (
                       <img
                         src={annuncio.foto_principale}
                         alt={annuncio.titolo}
-                        style={{
-                          width: '100%', height: '100%',
-                          objectFit: 'contain',
-                          padding: 0,
-                         
-                        }}
+                        style={{ width: '100%', height: '100%', objectFit: 'contain', padding: 0 }}
                       />
                     ) : (
                       <span style={{ fontSize: 44, opacity: 0.5 }}>{annuncio.categoria_emoji || '📦'}</span>
                     )}
-                   
+
                     {(annuncio.is_gratuito || annuncio.prezzo === 0) && (
                       <div style={{
                         position: 'absolute', top: 8, left: 8,
@@ -318,19 +362,19 @@ export default function Home() {
               <span style={{ fontSize: 11, fontWeight: 800, color: item.active ? '#FF6262' : '#BBB' }}>{item.label}</span>
             </button>
           ))}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 10 }}>
-  <button
-    onClick={() => utente ? window.location.href = '/pubblica' : window.location.href = '/login'}
-    style={{
-      width: 48, height: 48, borderRadius: '50%',
-      background: 'linear-gradient(145deg, #FF7575, #FF5252)',
-      border: 'none', cursor: 'pointer', fontSize: 24, color: 'white',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      boxShadow: '0 6px 20px rgba(255,82,82,0.4)',
-    }}
-  >+</button>
-  <span style={{ fontSize: 10, fontWeight: 800, color: '#FF6262', marginTop: 2 }}>Vendi</span>
-</div>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 10 }}>
+            <button
+              onClick={() => utente ? window.location.href = '/pubblica' : window.location.href = '/login'}
+              style={{
+                width: 48, height: 48, borderRadius: '50%',
+                background: 'linear-gradient(145deg, #FF7575, #FF5252)',
+                border: 'none', cursor: 'pointer', fontSize: 24, color: 'white',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: '0 6px 20px rgba(255,82,82,0.4)',
+              }}
+            >+</button>
+            <span style={{ fontSize: 10, fontWeight: 800, color: '#FF6262', marginTop: 2 }}>Vendi</span>
+          </div>
           {[{ icon: '💬', label: 'Messaggi', href: '/messaggi' }, { icon: '👤', label: 'Profilo', href: utente ? '/profilo' : '/login' }].map(item => (
             <button key={item.label} onClick={() => window.location.href = item.href} style={{
               display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
