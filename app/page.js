@@ -9,6 +9,7 @@ export default function Home() {
   const [categoriaSelezionata, setCategoriaSelezionata] = useState(null)
   const [categorie, setCategorie] = useState([])
   const [utente, setUtente] = useState(null)
+  const [ricerca, setRicerca] = useState('')
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -27,10 +28,7 @@ export default function Home() {
   }, [categoriaSelezionata])
 
   async function fetchCategorie() {
-    const { data } = await supabase
-      .from('categorie')
-      .select('*')
-      .order('ordine')
+    const { data } = await supabase.from('categorie').select('*').order('ordine')
     if (data) setCategorie(data)
   }
 
@@ -53,86 +51,153 @@ export default function Home() {
     setUtente(null)
   }
 
+  // Emoji override per passeggini
+  
+  function getEmoji(cat) {
+    return cat.emoji
+  }
+
   return (
-    <main className="min-h-screen bg-orange-50">
+    <main style={{ minHeight: '100vh', background: '#FFFAF8', fontFamily: "'Baloo 2', sans-serif" }}>
+
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800;900&display=swap');`}</style>
 
       {/* HEADER */}
-      <header className="bg-white shadow-sm sticky top-0 z-10">
-        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-black text-red-500 leading-none">Civita</h1>
-            <h1 className="text-2xl font-bold text-gray-800 leading-none -mt-1">Bimbi</h1>
+      <header style={{
+        background: 'white',
+        boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+        position: 'sticky', top: 0, zIndex: 50,
+      }}>
+        <div style={{ maxWidth: 640, margin: '0 auto', padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{
+              width: 38, height: 38, borderRadius: 12,
+              background: 'linear-gradient(145deg, #FF7575, #FF5252)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 20, boxShadow: '0 3px 10px rgba(255,82,82,0.3)',
+            }}>🏠</div>
+            <div>
+              <div style={{ fontSize: 20, fontWeight: 900, color: '#FF6262', lineHeight: 1.1, letterSpacing: -0.5 }}>CivitaBimbi</div>
+              <div style={{ fontSize: 10, fontWeight: 700, color: '#AAA', letterSpacing: 1, textTransform: 'uppercase', lineHeight: 1 }}>Civitavecchia</div>
+            </div>
           </div>
-          <div className="flex gap-2 items-center">
-            <button className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-lg hover:bg-gray-200">
-              🔔
-            </button>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <button style={{
+              width: 38, height: 38, borderRadius: '50%',
+              background: '#FFF5F5', border: 'none', cursor: 'pointer',
+              fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>🔔</button>
             {utente ? (
-              <button
-                onClick={handleLogout}
-                className="text-xs font-bold text-gray-400 hover:text-red-400 px-2"
-              >
-                Esci
-              </button>
+              <button onClick={handleLogout} style={{
+                fontSize: 12, fontWeight: 800, color: '#AAA',
+                background: 'none', border: 'none', cursor: 'pointer',
+                fontFamily: "'Baloo 2', sans-serif",
+              }}>Esci</button>
             ) : (
-              <button
-                onClick={() => window.location.href = '/login'}
-                className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-lg hover:bg-gray-200"
-              >
-                👤
-              </button>
+              <button onClick={() => window.location.href = '/login'} style={{
+                width: 38, height: 38, borderRadius: '50%',
+                background: '#FFF5F5', border: 'none', cursor: 'pointer',
+                fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>👤</button>
             )}
           </div>
         </div>
       </header>
 
-      <div className="max-w-2xl mx-auto px-4">
+      <div style={{ maxWidth: 640, margin: '0 auto', padding: '0 16px' }}>
 
         {/* HERO */}
-        <div className="bg-gradient-to-r from-red-400 to-orange-400 rounded-2xl p-5 mt-4 relative overflow-hidden">
-          <div className="relative z-10">
-            {utente ? (
-              <p className="text-white font-black text-xl leading-tight">Bentornato! 👋</p>
-            ) : (
-              <p className="text-white font-black text-xl leading-tight">Scambia, vendi e regala</p>
-            )}
-            <p className="text-white/80 text-sm font-semibold mt-1">oggetti per bambini a Civitavecchia</p>
-            <span className="inline-block bg-white/25 text-white text-xs font-bold px-3 py-1 rounded-full mt-3">
+        <div style={{
+          background: 'linear-gradient(135deg, #FF7575 0%, #FF8A50 100%)',
+          borderRadius: 24, padding: '20px',
+          marginTop: 16, position: 'relative', overflow: 'hidden',
+        }}>
+          <div style={{ position: 'relative', zIndex: 2 }}>
+            <div style={{ fontSize: 11, fontWeight: 800, color: 'rgba(255,255,255,0.75)', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 4 }}>
               📍 Civitavecchia & dintorni
-            </span>
+            </div>
+            <div style={{ fontSize: 22, fontWeight: 900, color: 'white', lineHeight: 1.2, marginBottom: 4 }}>
+              {utente ? 'Bentornato! 👋' : 'Scambia, vendi e regala'}
+            </div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.9)', marginBottom: 16 }}>
+              Il mercatino dei bambini di Civitavecchia
+            </div>
+            {!utente && (
+              <button
+                onClick={() => window.location.href = '/login'}
+                style={{
+                  background: 'white', color: '#FF6262',
+                  border: 'none', borderRadius: 50,
+                  padding: '8px 20px', fontSize: 13, fontWeight: 800,
+                  cursor: 'pointer', fontFamily: "'Baloo 2', sans-serif",
+                  boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
+                }}
+              >Inizia gratis →</button>
+            )}
           </div>
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 text-6xl opacity-20">🧸</div>
+          {/* Orsacchiotto più visibile */}
+          <div style={{
+            position: 'absolute', right: -5, top: '50%',
+            transform: 'translateY(-50%)',
+            fontSize: 80, opacity: 0.4, lineHeight: 1,
+            filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.15))',
+          }}>🧸</div>
         </div>
 
         {/* SEARCH */}
-        <div className="bg-white rounded-2xl px-4 py-3 mt-3 flex items-center gap-3 shadow-sm">
-          <span className="text-gray-400 text-lg">🔍</span>
-          <p className="text-gray-400 text-sm font-semibold">Cerca vestiti, giochi, libri...</p>
+        <div style={{
+          background: 'white', borderRadius: 16,
+          padding: '12px 16px', marginTop: 12,
+          display: 'flex', alignItems: 'center', gap: 10,
+          boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
+        }}>
+          <span style={{ fontSize: 18, color: '#CCC' }}>🔍</span>
+          <input
+  type="text"
+  placeholder="Cerca vestiti, giochi, libri..."
+  value={ricerca}
+  onChange={e => setRicerca(e.target.value)}
+  style={{
+    flex: 1, border: 'none', outline: 'none',
+    fontSize: 14, fontWeight: 600, color: '#2D2D2D',
+    background: 'transparent', fontFamily: "'Baloo 2', sans-serif",
+  }}
+/>
         </div>
 
         {/* CATEGORIE */}
-        <div className="mt-4">
-          <h2 className="text-base font-black text-gray-800 mb-3">Categorie</h2>
-          <div className="flex gap-2 overflow-x-auto pb-2">
+        <div style={{ marginTop: 20 }}>
+          <div style={{ fontSize: 15, fontWeight: 900, color: '#2D2D2D', marginBottom: 12 }}>Categorie</div>
+          <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 8 }}>
             <button
               onClick={() => setCategoriaSelezionata(null)}
-              className={`flex-shrink-0 flex flex-col items-center gap-1 px-4 py-3 rounded-2xl border-2 transition-all ${
-                !categoriaSelezionata ? 'border-red-400 bg-red-50' : 'border-transparent bg-white'
-              }`}
+              style={{
+                flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+                padding: '12px 16px', borderRadius: 18,
+                border: `2px solid ${!categoriaSelezionata ? '#FF6262' : 'transparent'}`,
+                background: !categoriaSelezionata ? '#FFF0F0' : 'white',
+                cursor: 'pointer', fontFamily: "'Baloo 2', sans-serif",
+                boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+              }}
             >
-              <span className="text-2xl">🏠</span>
-              <span className="text-xs font-bold text-gray-700">Tutti</span>
+              <span style={{ fontSize: 24 }}>🏠</span>
+              <span style={{ fontSize: 11, fontWeight: 800, color: '#2D2D2D' }}>Tutti</span>
             </button>
             {categorie.map(cat => (
               <button
                 key={cat.id}
                 onClick={() => setCategoriaSelezionata(cat.id)}
-                className={`flex-shrink-0 flex flex-col items-center gap-1 px-4 py-3 rounded-2xl border-2 transition-all ${
-                  categoriaSelezionata === cat.id ? 'border-red-400 bg-red-50' : 'border-transparent bg-white'
-                }`}
+                style={{
+                  flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+                  padding: '12px 16px', borderRadius: 18,
+                  border: `2px solid ${categoriaSelezionata === cat.id ? '#FF6262' : 'transparent'}`,
+                  background: categoriaSelezionata === cat.id ? '#FFF0F0' : 'white',
+                  cursor: 'pointer', fontFamily: "'Baloo 2', sans-serif",
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                }}
               >
-                <span className="text-2xl">{cat.emoji}</span>
-                <span className="text-xs font-bold text-gray-700 text-center whitespace-nowrap">
+                <span style={{ fontSize: 24 }}>{getEmoji(cat)}</span>
+                <span style={{ fontSize: 11, fontWeight: 800, color: '#2D2D2D', whiteSpace: 'nowrap' }}>
                   {cat.nome.split(' ')[0]}
                 </span>
               </button>
@@ -141,73 +206,100 @@ export default function Home() {
         </div>
 
         {/* ANNUNCI */}
-        <div className="mt-4 mb-24">
-          <h2 className="text-base font-black text-gray-800 mb-3">
+        <div style={{ marginTop: 20, marginBottom: 100 }}>
+          <div style={{ fontSize: 15, fontWeight: 900, color: '#2D2D2D', marginBottom: 12 }}>
             {categoriaSelezionata ? 'Annunci filtrati' : 'Annunci recenti'}
-          </h2>
+          </div>
 
           {loading ? (
-            <div className="grid grid-cols-2 gap-3">
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               {[...Array(4)].map((_, i) => (
-                <div key={i} className="bg-white rounded-2xl overflow-hidden shadow-sm animate-pulse">
-                  <div className="h-32 bg-gray-200" />
-                  <div className="p-3">
-                    <div className="h-3 bg-gray-200 rounded mb-2" />
-                    <div className="h-3 bg-gray-200 rounded w-2/3" />
+                <div key={i} style={{ background: 'white', borderRadius: 20, overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.05)' }}>
+                  <div style={{ height: 160, background: '#F5F0EC' }} />
+                  <div style={{ padding: 12 }}>
+                    <div style={{ height: 12, background: '#F0EBE6', borderRadius: 6, marginBottom: 8 }} />
+                    <div style={{ height: 12, background: '#F0EBE6', borderRadius: 6, width: '60%' }} />
                   </div>
                 </div>
               ))}
             </div>
           ) : annunci.length === 0 ? (
-            <div className="text-center py-16">
-              <div className="text-5xl mb-4">📭</div>
-              <p className="text-gray-400 font-bold">Nessun annuncio trovato</p>
-              <p className="text-gray-300 text-sm mt-1">Sii il primo a pubblicare!</p>
+            <div style={{ textAlign: 'center', padding: '60px 0' }}>
+              <div style={{ fontSize: 52, marginBottom: 16 }}>📭</div>
+              <div style={{ fontSize: 15, fontWeight: 800, color: '#AAA', marginBottom: 6 }}>Nessun annuncio trovato</div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: '#CCC', marginBottom: 20 }}>Sii il primo a pubblicare!</div>
               {!utente && (
                 <button
                   onClick={() => window.location.href = '/login'}
-                  className="mt-4 bg-red-400 text-white font-bold px-6 py-2 rounded-full text-sm"
-                >
-                  Accedi per pubblicare
-                </button>
+                  style={{
+                    background: 'linear-gradient(135deg, #FF7575, #FF5252)',
+                    color: 'white', border: 'none', borderRadius: 50,
+                    padding: '10px 24px', fontSize: 13, fontWeight: 800,
+                    cursor: 'pointer', fontFamily: "'Baloo 2', sans-serif",
+                  }}
+                >Accedi per pubblicare</button>
               )}
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-3">
-              {annunci.map(annuncio => (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              {annunci.filter(a => a.titolo.toLowerCase().includes(ricerca.toLowerCase())).map(annuncio => (
                 <div
                   key={annuncio.id}
-                  onClick={() => { console.log('click', annuncio.id); window.location.href = `/annuncio/${annuncio.id}`; }}
-                  className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                  onClick={() => window.location.href = `/annuncio/${annuncio.id}`}
+                  style={{
+                    background: 'white', borderRadius: 20, overflow: 'hidden',
+                    boxShadow: '0 2px 12px rgba(0,0,0,0.05)', cursor: 'pointer',
+                  }}
                 >
-                  <div className="h-32 bg-gradient-to-br from-orange-100 to-red-100 flex items-center justify-center relative">
+                  {/* FOTO */}
+                  <div style={{
+                    height: 160,
+                    background: 'linear-gradient(135deg, #FFF0EE, #FFE8E8)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    position: 'relative', overflow: 'hidden',
+                  }}>
                     {annuncio.foto_principale ? (
                       <img
                         src={annuncio.foto_principale}
                         alt={annuncio.titolo}
-                        className="w-full h-full object-cover"
+                        style={{
+                          width: '100%', height: '100%',
+                          objectFit: 'contain',
+                          objectPosition: 'center',
+                          padding: 8,
+                        }}
                       />
                     ) : (
-                      <span className="text-4xl">{annuncio.categoria_emoji || '📦'}</span>
+                      <span style={{ fontSize: 44, opacity: 0.5 }}>{annuncio.categoria_emoji || '📦'}</span>
                     )}
                     {annuncio.taglia && (
-                      <span className="absolute top-2 right-2 bg-yellow-300 text-gray-800 text-xs font-black px-2 py-0.5 rounded-full">
-                        {annuncio.taglia}
-                      </span>
+                      <div style={{
+                        position: 'absolute', top: 8, right: 8,
+                        background: '#FFD93D', color: '#2D2D2D',
+                        fontSize: 10, fontWeight: 900,
+                        padding: '2px 8px', borderRadius: 20,
+                      }}>{annuncio.taglia}</div>
+                    )}
+                    {(annuncio.is_gratuito || annuncio.prezzo === 0) && (
+                      <div style={{
+                        position: 'absolute', top: 8, left: 8,
+                        background: '#4ECDC4', color: 'white',
+                        fontSize: 10, fontWeight: 900,
+                        padding: '2px 8px', borderRadius: 20,
+                      }}>GRATIS</div>
                     )}
                   </div>
-                  <div className="p-3">
-                    <p className="text-xs font-black text-gray-800 leading-tight line-clamp-2 mb-1">
+                  {/* INFO */}
+                  <div style={{ padding: '10px 12px 12px' }}>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: '#2D2D2D', lineHeight: 1.3, marginBottom: 4, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
                       {annuncio.titolo}
-                    </p>
-                    <p className="text-xs text-gray-400 font-semibold mb-2">
+                    </div>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: '#BBB', marginBottom: 6 }}>
                       📍 {annuncio.zona || 'Civitavecchia'}
-                    </p>
-                    <p className={`text-base font-black ${
-                      annuncio.is_gratuito || annuncio.prezzo === 0 ? 'text-teal-500' : 'text-red-500'
-                    }`}>
+                    </div>
+                    <div style={{ fontSize: 16, fontWeight: 900, color: annuncio.is_gratuito || annuncio.prezzo === 0 ? '#4ECDC4' : '#FF6262' }}>
                       {annuncio.is_gratuito || annuncio.prezzo === 0 ? 'Gratis' : `${annuncio.prezzo} €`}
-                    </p>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -217,36 +309,42 @@ export default function Home() {
       </div>
 
       {/* BOTTOM NAV */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-10">
-        <div className="max-w-2xl mx-auto flex items-center justify-around px-4 py-2">
-          <button className="flex flex-col items-center gap-1 px-3 py-1">
-            <span className="text-xl">🏠</span>
-            <span className="text-xs font-bold text-red-500">Home</span>
-          </button>
-          <button className="flex flex-col items-center gap-1 px-3 py-1">
-            <span className="text-xl">🔍</span>
-            <span className="text-xs font-bold text-gray-400">Esplora</span>
-          </button>
+      <nav style={{
+        position: 'fixed', bottom: 0, left: 0, right: 0,
+        background: 'white', borderTop: '1px solid #F5F0EC',
+        zIndex: 50, boxShadow: '0 -4px 20px rgba(0,0,0,0.06)',
+      }}>
+        <div style={{ maxWidth: 640, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-around', padding: '8px 16px' }}>
+          {[{ icon: '🏠', label: 'Home', href: '/', active: true }, { icon: '🔍', label: 'Esplora', href: '/', active: false }].map(item => (
+            <button key={item.label} onClick={() => window.location.href = item.href} style={{
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
+              padding: '4px 12px', background: 'none', border: 'none', cursor: 'pointer',
+              fontFamily: "'Baloo 2', sans-serif",
+            }}>
+              <span style={{ fontSize: 22 }}>{item.icon}</span>
+              <span style={{ fontSize: 11, fontWeight: 800, color: item.active ? '#FF6262' : '#BBB' }}>{item.label}</span>
+            </button>
+          ))}
           <button
             onClick={() => utente ? window.location.href = '/pubblica' : window.location.href = '/login'}
-            className="w-12 h-12 bg-gradient-to-br from-red-400 to-orange-400 rounded-full flex items-center justify-center text-white text-2xl shadow-lg -mt-4 hover:scale-105 transition-transform"
-          >
-            +
-          </button>
-          <button
-            onClick={() => window.location.href = '/messaggi'}
-            className="flex flex-col items-center gap-1 px-3 py-1"
-          >
-            <span className="text-xl">💬</span>
-            <span className="text-xs font-bold text-gray-400">Messaggi</span>
-          </button>
-          <button
-            onClick={() => utente ? window.location.href = '/profilo' : window.location.href = '/login'}
-            className="flex flex-col items-center gap-1 px-3 py-1"
-          >
-            <span className="text-xl">👤</span>
-            <span className="text-xs font-bold text-gray-400">Profilo</span>
-          </button>
+            style={{
+              width: 52, height: 52, borderRadius: '50%',
+              background: 'linear-gradient(145deg, #FF7575, #FF5252)',
+              border: 'none', cursor: 'pointer', fontSize: 26, color: 'white',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              marginTop: -20, boxShadow: '0 6px 20px rgba(255,82,82,0.4)',
+            }}
+          >+</button>
+          {[{ icon: '💬', label: 'Messaggi', href: '/messaggi' }, { icon: '👤', label: 'Profilo', href: utente ? '/profilo' : '/login' }].map(item => (
+            <button key={item.label} onClick={() => window.location.href = item.href} style={{
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
+              padding: '4px 12px', background: 'none', border: 'none', cursor: 'pointer',
+              fontFamily: "'Baloo 2', sans-serif",
+            }}>
+              <span style={{ fontSize: 22 }}>{item.icon}</span>
+              <span style={{ fontSize: 11, fontWeight: 800, color: '#BBB' }}>{item.label}</span>
+            </button>
+          ))}
         </div>
       </nav>
 
